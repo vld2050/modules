@@ -1,0 +1,136 @@
+<?php
+/**
+* @file
+* A description of what your module does.
+*/
+function test_module_menu(){
+    $items = array();
+
+    $items['test_url'] = array(
+        'title' => 'First page for drupal',
+        'page callback' => 'main_function',
+        'type' => MENU_NORMAL_ITEM,
+        'access callback' => TRUE,
+    );
+
+    $items['next_form'] = array(
+        'title' => 'Форма регистрации',//заголовок страницы
+        'page callback' => 'form_function',//имя функции
+        'type' => MENU_NORMAL_ITEM, //тип страницы
+        'access callback' => TRUE, //доступ к странице
+    );
+
+    return $items;
+}
+
+function form_function(){
+    $form = drupal_get_form('my_next_form'); //получаем поля формы
+    $form = drupal_render($form); //рендерим форму
+    return $form;
+}
+
+function my_next_form($form, &$form_state){
+    $form=array();
+
+    $form['lastname']=array(
+        '#type' => 'textfield',
+        '#title' => t('Фамилия'),
+        '#required' => true
+    );
+
+    $form['name']=array(
+        '#type' => 'textfield',
+        '#title' => t('Имя'),
+        '#required' => true
+    );
+
+    $form['thirdname']=array(
+        '#type' => 'textfield',
+        '#title' => t('Отчетсво'),
+        '#required' => true
+    );
+
+    $form['sex'] = array( //пол
+        '#type' => 'radios',
+        '#title' => t('Ваш пол'),
+        '#options' => array(0 => t('М'), 1 => t('Ж')),
+        '#required' => true
+    );
+
+    $form['maiden_name']=array( //девичья фамилия
+        '#type' => 'textfield',
+        '#title' => t('Ваша девичья фамилия'),
+        '#states' => array(
+            'visible' => array(
+                'input[name="sex"]' => array('value' =>1),
+            ),
+        ),
+    );
+
+    $form['served']=array( //отметка о службе
+        '#type' => 'checkbox',
+        '#title' => 'Служил в армии',
+        '#states' => array(
+            'visible' => array(
+                'input[name="sex"]' => array('value' => 0),
+            ),
+        ),
+    );
+
+    $form['rank']=array( //воинское звание
+        '#type' => 'textfield',
+        '#title' => t('Ваше воинское звание'),
+        '#default_value' =>t('Рядовой'),
+        '#states' => array(
+            'visible' => array(
+                'input[name="served"]' => array('checked' => true),
+                'input[name="sex"]' => array('value' =>0)
+            ),
+        ),
+    );
+
+    $form['submit'] = array( //кнопка сабмит
+        '#type' => 'submit',
+        '#value' => t('Submit'),
+    );
+
+    return $form;
+}
+
+function my_next_form_validate($form, &$form_state){
+    if($form_state['values']['maiden_name']==''){
+        $form_state['values']['maiden_name']='Отсутствует';
+    }
+    if(mb_strlen($form_state['values']['name']) == ''){
+        form_set_error('name', t('Слишком короткое имя.'));
+    }
+}
+
+function my_next_form_submit($form, &$form_state){
+    $name = $form_state['values']['name'];
+    $lastname = $form_state['values']['lastname'];
+    $thidname = $form_state['values']['thirdname'];
+    $sex = $form_state['values']['sex'];
+    $maiden_name = $form_state['values']['maiden_name'];
+    $rank = $form_state['values']['rank'];
+
+    if($sex == 0) {
+        $sex = 'Мужской';
+        $str = "Фамилия: ".$lastname."\r\n"."Имя: ".$name."\r\n"."Отчество: ".$thidname."\r\n"."Пол: ".$sex.
+            "\r\n"."Звание: ".$rank;
+    }
+    else {
+        $sex = 'Женский';
+        $str = "Фамилия: ".$lastname."\r\n"."Имя: ".$name."\r\n"."Отчество: ".$thidname."\r\n"."Пол: ".
+            $sex."\r\n"."Девечья фамилия: ".$maiden_name;
+    }
+
+
+    $file_name='public://'.md5(time()).'.txt';
+    $file = fopen ($file_name,"w+");
+
+    if($file && fputs ( $file, $str) && fclose ($file)){
+        drupal_set_message('Данные успешно отправлены');
+    }
+}
+?>

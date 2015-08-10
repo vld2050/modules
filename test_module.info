@@ -1,0 +1,7 @@
+name = First module
+description = Test module.
+package = test_modules
+core=7.x
+version = "7.x-1.x-dev"
+project = "test_module"
+datestamp = "1332419400"
