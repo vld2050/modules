@@ -112,25 +112,25 @@ function my_next_form_submit($form, &$form_state){
     $thidname = $form_state['values']['thirdname'];
     $sex = $form_state['values']['sex'];
     $maiden_name = $form_state['values']['maiden_name'];
-    $rank = $form_state['values']['rank'];
+    $rang = $form_state['values']['rank'];
 
-    if($sex == 0) {
-        $sex = 'Мужской';
-        $str = "Фамилия: ".$lastname."\r\n"."Имя: ".$name."\r\n"."Отчество: ".$thidname."\r\n"."Пол: ".$sex.
-            "\r\n"."Звание: ".$rank;
+
+    $q=db_select('test_table','s');
+    $fields = array(
+        'name' => $name,
+        'lastname' => $lastname,
+        'thirdname' => $thidname,
+        'sex' => $sex,
+        'rang' => $rang,
+        'maiden_name' => $maiden_name
+    );
+
+
+    if(db_insert('test_table')->fields($fields)->execute()){
+        drupal_set_message('Данные успешно отправлены.');
     }
-    else {
-        $sex = 'Женский';
-        $str = "Фамилия: ".$lastname."\r\n"."Имя: ".$name."\r\n"."Отчество: ".$thidname."\r\n"."Пол: ".
-            $sex."\r\n"."Девечья фамилия: ".$maiden_name;
-    }
-
-
-    $file_name='public://'.md5(time()).'.txt';
-    $file = fopen ($file_name,"w+");
-
-    if($file && fputs ( $file, $str) && fclose ($file)){
-        drupal_set_message('Данные успешно отправлены');
+    else{
+        drupal_set_massage('Ошибка в добавлении данных.');
     }
 }
 ?>
